@@ -15,7 +15,7 @@
             margin: 10px;
             font-size: 16px;
         }
-        #moneyEarned, #elapsedTime {
+        #moneyEarned, #elapsedTime, #goalDisplay {
             font-size: 24px;
             margin: 20px;
         }
@@ -32,11 +32,16 @@
         <input type="text" id="time" placeholder="00:00">
     </div>
     <div>
+        <label for="goal">Goal (€):</label>
+        <input type="number" id="goal" placeholder="Enter goal (optional)" step="0.01">
+    </div>
+    <div>
         <button id="pauseBtn">Pause</button>
         <button id="continueBtn">Continue</button>
         <button id="stopBtn">Stop</button>
     </div>
     <div id="elapsedTime">Elapsed Time: 00:00:00</div>
+    <div id="goalDisplay">Current: €0.00</div>
     <div id="moneyEarned">Money Earned: €0.00</div>
 
     <script>
@@ -44,10 +49,13 @@
         let startTime = null;
         let rate = 0;
         let elapsedHours = 0;
+        let goal = 0;
 
         const rateInput = document.getElementById('rate');
         const timeInput = document.getElementById('time');
+        const goalInput = document.getElementById('goal');
         const elapsedTimeDiv = document.getElementById('elapsedTime');
+        const goalDisplayDiv = document.getElementById('goalDisplay');
         const moneyEarnedDiv = document.getElementById('moneyEarned');
         const pauseBtn = document.getElementById('pauseBtn');
         const continueBtn = document.getElementById('continueBtn');
@@ -60,10 +68,12 @@
                 const data = JSON.parse(savedData);
                 rateInput.value = data.rate || 0;
                 timeInput.value = data.time || '00:00';
+                goalInput.value = data.goal || '';
                 isRunning = data.isRunning || false;
                 startTime = data.startTime || null;
                 elapsedHours = data.elapsedHours || 0;
                 rate = parseFloat(rateInput.value) || 0;
+                goal = parseFloat(goalInput.value) || 0;
                 
                 if (isRunning && startTime) {
                     updateTimer();
@@ -78,6 +88,7 @@
             const data = {
                 rate: rateInput.value,
                 time: timeInput.value,
+                goal: goalInput.value,
                 isRunning: isRunning,
                 startTime: startTime,
                 elapsedHours: elapsedHours
@@ -128,6 +139,10 @@
             updateMoneyEarned();
             saveData();
         });
+        goalInput.addEventListener('change', () => {
+            updateMoneyEarned();
+            saveData();
+        });
         pauseBtn.addEventListener('click', () => {
             pauseTimer();
             saveData();
@@ -142,13 +157,34 @@
 
         function updateMoneyEarned() {
             rate = parseFloat(rateInput.value) || 0;
+            goal = parseFloat(goalInput.value) || 0;
             const timeParts = timeInput.value.split(':');
             const hours = parseInt(timeParts[0]) || 0;
             const minutes = parseInt(timeParts[1]) || 0;
             const totalHours = hours + minutes / 60 + elapsedHours;
             const moneyEarned = rate * totalHours;
+            
             moneyEarnedDiv.textContent = `Money Earned: €${moneyEarned.toFixed(2)}`;
-            document.title = `________€${moneyEarned.toFixed(2)}___________`; // Keep the _ for the display in the windows bottom bar
+            
+            // Update goal display
+            if (goal > 0) {
+                const percentage = (moneyEarned / goal) * 100;
+                goalDisplayDiv.textContent = `${goal.toFixed(2)}€ / ${moneyEarned.toFixed(2)}€ (${percentage.toFixed(2)}%)`;
+                
+                // Create title with underscores to reach 25 characters
+                const titleContent = `${goal.toFixed(2)}€ / ${moneyEarned.toFixed(2)}€ (${percentage.toFixed(2)}%)`;
+                let title = titleContent;
+                if (titleContent.length < 25) {
+                    const underscoresNeeded = 25 - titleContent.length;
+                    const leftUnderscores = Math.floor(underscoresNeeded / 2);
+                    const rightUnderscores = underscoresNeeded - leftUnderscores;
+                    title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
+                }
+                document.title = title;
+            } else {
+                goalDisplayDiv.textContent = `Current: €${moneyEarned.toFixed(2)}`;
+                document.title = `_€${moneyEarned.toFixed(2)}_`;
+            }
         }
 
         function pauseTimer() {
