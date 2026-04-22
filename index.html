@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Counter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        #moneyEarned, #elapsedTime {
+            font-size: 24px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Money Counter</h1>
+    <div>
+        <label for="rate">€ / hour:</label>
+        <input type="number" id="rate" placeholder="Enter rate" step="0.01">
+    </div>
+    <div>
+        <label for="time">Hours so far (hh:mm):</label>
+        <input type="text" id="time" placeholder="00:00">
+    </div>
+    <div>
+        <button id="pauseBtn">Pause</button>
+        <button id="continueBtn">Continue</button>
+        <button id="stopBtn">Stop</button>
+    </div>
+    <div id="elapsedTime">Elapsed Time: 00:00:00</div>
+    <div id="moneyEarned">Money Earned: €0.00</div>
+
+    <script>
+        let isRunning = false;
+        let startTime = null;
+        let rate = 0;
+        let elapsedHours = 0;
+
+        const rateInput = document.getElementById('rate');
+        const timeInput = document.getElementById('time');
+        const elapsedTimeDiv = document.getElementById('elapsedTime');
+        const moneyEarnedDiv = document.getElementById('moneyEarned');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const continueBtn = document.getElementById('continueBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        // Load saved data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('moneyCounterData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                rateInput.value = data.rate || 0;
+                timeInput.value = data.time || '00:00';
+                isRunning = data.isRunning || false;
+                startTime = data.startTime || null;
+                elapsedHours = data.elapsedHours || 0;
+                rate = parseFloat(rateInput.value) || 0;
+                
+                if (isRunning && startTime) {
+                    updateTimer();
+                } else {
+                    updateMoneyEarned();
+                }
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const data = {
+                rate: rateInput.value,
+                time: timeInput.value,
+                isRunning: isRunning,
+                startTime: startTime,
+                elapsedHours: elapsedHours
+            };
+            localStorage.setItem('moneyCounterData', JSON.stringify(data));
+        }
+
+        // Stop the timer and add elapsed time to "Hours so far"
+        function stopTimer() {
+            if (isRunning) {
+                isRunning = false;
+                startTime = null;
+            }
+            
+            // Add elapsed time to "Hours so far"
+            const timeParts = timeInput.value.split(':');
+            let hours = parseInt(timeParts[0]) || 0;
+            let minutes = parseInt(timeParts[1]) || 0;
+            
+            // Convert elapsedHours to hours and minutes
+            const additionalHours = Math.floor(elapsedHours);
+            const additionalMinutes = Math.floor((elapsedHours - additionalHours) * 60);
+            
+            hours += additionalHours;
+            minutes += additionalMinutes;
+            
+            // Handle overflow in minutes
+            if (minutes >= 60) {
+                hours += Math.floor(minutes / 60);
+                minutes = minutes % 60;
+            }
+            
+            timeInput.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            
+            // Reset elapsed time
+            elapsedHours = 0;
+            elapsedTimeDiv.textContent = 'Elapsed Time: 00:00:00';
+            
+            updateMoneyEarned();
+            saveData();
+        }
+
+        rateInput.addEventListener('change', () => {
+            updateMoneyEarned();
+            saveData();
+        });
+        timeInput.addEventListener('change', () => {
+            updateMoneyEarned();
+            saveData();
+        });
+        pauseBtn.addEventListener('click', () => {
+            pauseTimer();
+            saveData();
+        });
+        continueBtn.addEventListener('click', () => {
+            continueTimer();
+            saveData();
+        });
+        stopBtn.addEventListener('click', () => {
+            stopTimer();
+        });
+
+        function updateMoneyEarned() {
+            rate = parseFloat(rateInput.value) || 0;
+            const timeParts = timeInput.value.split(':');
+            const hours = parseInt(timeParts[0]) || 0;
+            const minutes = parseInt(timeParts[1]) || 0;
+            const totalHours = hours + minutes / 60 + elapsedHours;
+            const moneyEarned = rate * totalHours;
+            moneyEarnedDiv.textContent = `Money Earned: €${moneyEarned.toFixed(2)}`;
+            document.title = `________€${moneyEarned.toFixed(2)}___________`; // Keep the _ for the display in the windows bottom bar
+        }
+
+        function pauseTimer() {
+            if (isRunning) {
+                isRunning = false;
+            }
+        }
+
+        function continueTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                if (!startTime) {
+                    startTime = Date.now();
+                }
+                updateTimer();
+            }
+        }
+
+        function updateTimer() {
+            if (isRunning) {
+                const elapsedTime = Date.now() - startTime;
+                const hours = Math.floor(elapsedTime / 3600000);
+                const minutes = Math.floor((elapsedTime % 3600000) / 60000);
+                const seconds = Math.floor((elapsedTime % 60000) / 1000);
+                elapsedHours = hours + minutes / 60 + seconds / 3600;
+                elapsedTimeDiv.textContent = `Elapsed Time: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                updateMoneyEarned();
+                saveData();
+                setTimeout(updateTimer, 1000);
+            }
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
