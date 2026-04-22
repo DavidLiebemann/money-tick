@@ -170,21 +170,21 @@
             if (goal > 0) {
                 const percentage = (moneyEarned / goal) * 100;
                 goalDisplayDiv.textContent = `${goal.toFixed(2)}€ / ${moneyEarned.toFixed(2)}€ (${percentage.toFixed(2)}%)`;
-                
-                // Create title with underscores to reach 25 characters
-                const titleContent = `${goal.toFixed(2)}€ / ${moneyEarned.toFixed(2)}€ (${percentage.toFixed(2)}%)`;
-                let title = titleContent;
-                if (titleContent.length < 25) {
-                    const underscoresNeeded = 25 - titleContent.length;
-                    const leftUnderscores = Math.floor(underscoresNeeded / 2);
-                    const rightUnderscores = underscoresNeeded - leftUnderscores;
-                    title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
-                }
-                document.title = title;
             } else {
                 goalDisplayDiv.textContent = `Current: €${moneyEarned.toFixed(2)}`;
-                document.title = `_€${moneyEarned.toFixed(2)}_`;
             }
+            
+            // Update title with underscores to reach 25 characters
+            const titleContent = `${moneyEarned.toFixed(2)}€`;
+            let title = titleContent;
+            const targetTitleLength = 23;
+            if (titleContent.length < targetTitleLength) {
+                const underscoresNeeded = targetTitleLength - titleContent.length;
+                const leftUnderscores = Math.floor(underscoresNeeded / 2);
+                const rightUnderscores = underscoresNeeded - leftUnderscores;
+                title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
+            }
+            document.title = title;
         }
 
         function pauseTimer() {
