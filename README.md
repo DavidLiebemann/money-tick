@@ -16,9 +16,7 @@ A simple web application to track money earned based on hourly rate and time wor
 4. Click "Pause" to pause the timer.
 5. Click "Stop" to add the elapsed time to "Hours so far" and reset the timer.
 6. The money earned is displayed in real-time and also shown in the browser tab title.
-
-## Hosting on GitHub Pages
-This repository is ready to be hosted on GitHub Pages. Simply push the code to a GitHub repository and enable GitHub Pages in the repository settings.
+7. Optionally add a goal you're working towards.
 
 ## License
 This project is open-source and available under the MIT License.
