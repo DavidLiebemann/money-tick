@@ -5,44 +5,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Money Counter</title>
     <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        input, button {
-            padding: 10px;
-            margin: 10px;
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .container {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
             font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
         }
-        #moneyEarned, #elapsedTime, #goalDisplay {
-            font-size: 24px;
-            margin: 20px;
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        #pauseBtn {
+            background-color: #ff9800;
+            color: var(--white);
+        }
+
+        #continueBtn {
+            background-color: #4caf50;
+            color: var(--white);
+        }
+
+        #stopBtn {
+            background-color: #f44336;
+            color: var(--white);
+        }
+
+        .display-group {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        #elapsedTime, #goalDisplay, #moneyEarned {
+            font-size: 20px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        #moneyEarned {
+            font-size: 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Money Counter</h1>
-    <div>
-        <label for="rate">€ / hour:</label>
-        <input type="number" id="rate" placeholder="Enter rate" step="0.01">
+    <div class="container">
+        <h1>Money Counter</h1>
+        
+        <div class="input-group">
+            <label for="rate">€ / hour:</label>
+            <input type="number" id="rate" placeholder="Enter rate" step="0.01">
+        </div>
+
+        <div class="input-group">
+            <label for="time">Hours so far (hh:mm):</label>
+            <input type="text" id="time" placeholder="00:00">
+        </div>
+
+        <div class="input-group">
+            <label for="goal">Goal (€):</label>
+            <input type="number" id="goal" placeholder="Enter goal (optional)" step="0.01">
+        </div>
+
+        <div class="button-group">
+            <button id="pauseBtn">Pause</button>
+            <button id="continueBtn">Continue</button>
+            <button id="stopBtn">Stop</button>
+        </div>
+
+        <div class="display-group">
+            <div id="elapsedTime">Elapsed Time: 00:00:00</div>
+            <div id="goalDisplay">Current: €0.00</div>
+            <div id="moneyEarned">Money Earned: €0.00</div>
+        </div>
     </div>
-    <div>
-        <label for="time">Hours so far (hh:mm):</label>
-        <input type="text" id="time" placeholder="00:00">
-    </div>
-    <div>
-        <label for="goal">Goal (€):</label>
-        <input type="number" id="goal" placeholder="Enter goal (optional)" step="0.01">
-    </div>
-    <div>
-        <button id="pauseBtn">Pause</button>
-        <button id="continueBtn">Continue</button>
-        <button id="stopBtn">Stop</button>
-    </div>
-    <div id="elapsedTime">Elapsed Time: 00:00:00</div>
-    <div id="goalDisplay">Current: €0.00</div>
-    <div id="moneyEarned">Money Earned: €0.00</div>
 
     <script>
         let isRunning = false;
@@ -166,17 +299,17 @@
             
             moneyEarnedDiv.textContent = `Money Earned: €${moneyEarned.toFixed(2)}`;
             
+            const title_length = 23;
             // Update goal display
             if (goal > 0) {
                 const percentage = Math.round((moneyEarned / goal) * 100);
-                goalDisplayDiv.textContent = `${goal.toFixed(2)}€ / ${moneyEarned.toFixed(2)}€ (${percentage}%)`;
+                goalDisplayDiv.textContent = `${moneyEarned.toFixed(2)}€ / ${goal.toFixed(2)}€ (${percentage}%)`;
                 
                 // Update title with percentage and earned money
                 const titleContent = `${percentage}%: ${moneyEarned.toFixed(2)}€`;
                 let title = titleContent;
-                const title_size = 25;
-                if (titleContent.length < title_size) {
-                    const underscoresNeeded = title_size - titleContent.length;
+                if (titleContent.length < title_length) {
+                    const underscoresNeeded = title_length - titleContent.length;
                     const leftUnderscores = Math.floor(underscoresNeeded / 2) - 1;
                     const rightUnderscores = underscoresNeeded - leftUnderscores;
                     title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
@@ -188,8 +321,8 @@
                 // Update title with earned money only
                 const titleContent = `€${moneyEarned.toFixed(2)}`;
                 let title = titleContent;
-                if (titleContent.length < 25) {
-                    const underscoresNeeded = 25 - titleContent.length;
+                if (titleContent.length < title_length) {
+                    const underscoresNeeded = title_length - titleContent.length;
                     const leftUnderscores = Math.floor(underscoresNeeded / 2) - 1;
                     const rightUnderscores = underscoresNeeded - leftUnderscores;
                     title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
