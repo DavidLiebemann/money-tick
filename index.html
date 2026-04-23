@@ -49,6 +49,11 @@
             margin-bottom: 20px;
         }
 
+        .input-group.small-input input {
+            padding: 8px;
+            font-size: 14px;
+        }
+
         .input-group label {
             display: block;
             margin-bottom: 8px;
@@ -70,6 +75,39 @@
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+        }
+
+        .advanced-settings-toggle {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .advanced-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s;
+        }
+
+        .advanced-toggle-btn:hover {
+            background-color: rgba(22, 96, 136, 0.1);
+        }
+
+        .advanced-settings {
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(74, 111, 165, 0.05);
+            border-radius: var(--border-radius);
+            border: 1px dashed rgba(22, 96, 136, 0.2);
+        }
+
+        .advanced-settings.show {
+            display: block;
         }
 
         .button-group {
@@ -164,6 +202,22 @@
             <input type="number" id="goal" placeholder="Enter goal (optional)" step="0.01">
         </div>
 
+        <div class="advanced-settings-toggle">
+            <button id="advancedToggle" class="advanced-toggle-btn">⚙️ Advanced Settings</button>
+        </div>
+
+        <div class="advanced-settings" id="advancedSettings">
+            <div class="input-group small-input">
+                <label for="leftPadding">Left Padding:</label>
+                <input type="text" id="leftPadding" placeholder="Leave empty for default _ padding">
+            </div>
+
+            <div class="input-group small-input">
+                <label for="rightPadding">Right Padding:</label>
+                <input type="text" id="rightPadding" placeholder="Leave empty for default _ padding">
+            </div>
+        </div>
+
         <div class="button-group">
             <button id="pauseBtn">Pause</button>
             <button id="continueBtn">Continue</button>
@@ -187,12 +241,16 @@
         const rateInput = document.getElementById('rate');
         const timeInput = document.getElementById('time');
         const goalInput = document.getElementById('goal');
+        const leftPaddingInput = document.getElementById('leftPadding');
+        const rightPaddingInput = document.getElementById('rightPadding');
         const elapsedTimeDiv = document.getElementById('elapsedTime');
         const goalDisplayDiv = document.getElementById('goalDisplay');
         const moneyEarnedDiv = document.getElementById('moneyEarned');
         const pauseBtn = document.getElementById('pauseBtn');
         const continueBtn = document.getElementById('continueBtn');
         const stopBtn = document.getElementById('stopBtn');
+        const advancedToggle = document.getElementById('advancedToggle');
+        const advancedSettings = document.getElementById('advancedSettings');
 
         // Load saved data from localStorage
         function loadData() {
@@ -202,6 +260,8 @@
                 rateInput.value = data.rate || 0;
                 timeInput.value = data.time || '00:00';
                 goalInput.value = data.goal || '';
+                leftPaddingInput.value = data.leftPadding || '';
+                rightPaddingInput.value = data.rightPadding || '';
                 isRunning = data.isRunning || false;
                 startTime = data.startTime || null;
                 elapsedHours = data.elapsedHours || 0;
@@ -222,11 +282,20 @@
                 rate: rateInput.value,
                 time: timeInput.value,
                 goal: goalInput.value,
+                leftPadding: leftPaddingInput.value,
+                rightPadding: rightPaddingInput.value,
                 isRunning: isRunning,
                 startTime: startTime,
                 elapsedHours: elapsedHours
             };
             localStorage.setItem('moneyCounterData', JSON.stringify(data));
+        }
+
+        // Toggle advanced settings visibility
+        function toggleAdvancedSettings() {
+            advancedSettings.classList.toggle('show');
+            const isShowing = advancedSettings.classList.contains('show');
+            advancedToggle.textContent = isShowing ? '⚙️ Hide Advanced Settings' : '⚙️ Advanced Settings';
         }
 
         // Stop the timer and add elapsed time to "Hours so far"
@@ -264,6 +333,7 @@
             saveData();
         }
 
+        // Event listeners
         rateInput.addEventListener('change', () => {
             updateMoneyEarned();
             saveData();
@@ -273,6 +343,14 @@
             saveData();
         });
         goalInput.addEventListener('change', () => {
+            updateMoneyEarned();
+            saveData();
+        });
+        leftPaddingInput.addEventListener('change', () => {
+            updateMoneyEarned();
+            saveData();
+        });
+        rightPaddingInput.addEventListener('change', () => {
             updateMoneyEarned();
             saveData();
         });
@@ -287,6 +365,7 @@
         stopBtn.addEventListener('click', () => {
             stopTimer();
         });
+        advancedToggle.addEventListener('click', toggleAdvancedSettings);
 
         function updateMoneyEarned() {
             rate = parseFloat(rateInput.value) || 0;
@@ -299,7 +378,10 @@
             
             moneyEarnedDiv.textContent = `Money Earned: €${moneyEarned.toFixed(2)}`;
             
-            const title_length = 23;
+            const title_length = 25;
+            const leftPadding = leftPaddingInput.value;
+            const rightPadding = rightPaddingInput.value;
+            
             // Update goal display
             if (goal > 0) {
                 const percentage = Math.round((moneyEarned / goal) * 100);
@@ -309,10 +391,22 @@
                 const titleContent = `${percentage}%: ${moneyEarned.toFixed(2)}€`;
                 let title = titleContent;
                 if (titleContent.length < title_length) {
-                    const underscoresNeeded = title_length - titleContent.length;
-                    const leftUnderscores = Math.floor(underscoresNeeded / 2) - 1;
-                    const rightUnderscores = underscoresNeeded - leftUnderscores;
-                    title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
+                    if (leftPadding || rightPadding) {
+                        // Use custom padding
+                        const leftPad = leftPadding || '';
+                        const rightPad = rightPadding || '';
+                        title = `${leftPad}${titleContent}${rightPad}`;
+                        // Trim to title_length if needed
+                        if (title.length > title_length) {
+                            title = title.substring(0, title_length);
+                        }
+                    } else {
+                        // Use default underscore padding
+                        const underscoresNeeded = title_length - titleContent.length;
+                        const leftUnderscores = Math.floor(underscoresNeeded / 2);
+                        const rightUnderscores = underscoresNeeded - leftUnderscores;
+                        title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
+                    }
                 }
                 document.title = title;
             } else {
@@ -322,10 +416,22 @@
                 const titleContent = `€${moneyEarned.toFixed(2)}`;
                 let title = titleContent;
                 if (titleContent.length < title_length) {
-                    const underscoresNeeded = title_length - titleContent.length;
-                    const leftUnderscores = Math.floor(underscoresNeeded / 2) - 1;
-                    const rightUnderscores = underscoresNeeded - leftUnderscores;
-                    title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
+                    if (leftPadding || rightPadding) {
+                        // Use custom padding
+                        const leftPad = leftPadding || '';
+                        const rightPad = rightPadding || '';
+                        title = `${leftPad}${titleContent}${rightPad}`;
+                        // Trim to title_length if needed
+                        if (title.length > title_length) {
+                            title = title.substring(0, title_length);
+                        }
+                    } else {
+                        // Use default underscore padding
+                        const underscoresNeeded = title_length - titleContent.length;
+                        const leftUnderscores = Math.floor(underscoresNeeded / 2);
+                        const rightUnderscores = underscoresNeeded - leftUnderscores;
+                        title = `${'_'.repeat(leftUnderscores)}${titleContent}${'_'.repeat(rightUnderscores)}`;
+                    }
                 }
                 document.title = title;
             }
